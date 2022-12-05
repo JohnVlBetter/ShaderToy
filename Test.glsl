@@ -5,55 +5,28 @@ vec2 FixUV(in vec2 uv){
 }
 
 vec3 DrawGrid(in vec2 uv){
-    vec3 col = vec3(0);
+    vec3 col = vec3(0.4);
+    vec2 grid = floor(mod(uv,2.));
+    if(grid.x == grid.y) col = vec3(.6);
 
-    vec2 cell = fract(uv);
-
-    if(cell.x < fwidth(uv.x)) col = vec3(1);
-
-    if(cell.y < fwidth(uv.y)) col = vec3(1);
-    
-    if(abs(uv.x) < fwidth(uv.x)) col = vec3(1,0,0);
-    
-    if(abs(uv.y) < fwidth(uv.y)) col = vec3(1,0,0);
+    col = mix(col, vec3(0.), 
+        smoothstep(1.1*fwidth(uv.x),fwidth(uv.x),abs(uv.x)));
+    col = mix(col, vec3(0.), 
+        smoothstep(1.1*fwidth(uv.y),fwidth(uv.y),abs(uv.y)));
 
     return col;
 }
 
-float DrawSegment(in vec2 p, in vec2 a, in vec2 b, in float width){
-    float f = 0.;
-    vec2 ba = b - a;
-    vec2 pa = p - a;
-    float proj = clamp(dot(pa, ba)/dot(ba, ba),0.,1.);
-    float d = length(ba * proj - pa);
-    if(d <= width) f = 1.;
-    return f;
-}
-
-float func(in float x){
-    float t = 2. + cos(iTime);
-    return cos(PI / t * x);
-}
-
-float DrawFunc(in vec2 uv){
-    float val = 0.;
-
-    for(float i=0.; i<=iResolution.x; i+=1.){
-        float fx = FixUV(vec2(i,0.)).x;
-        float nfx = FixUV(vec2(i + 1.,0.)).x;
-        val += DrawSegment(uv, vec2(fx, func(fx)), vec2(nfx, func(nfx)), fwidth(uv.x));
-    }
-
-    val = clamp(val, 0., 1.);
-
-    return val;
+float DrawSphere(in vec2 uv,in vec2 center, in float radius){
+    return clamp(-sign(length(uv) - radius),0.,1.);
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     vec2 uv = FixUV(fragCoord);
 
-    vec3 col = mix(DrawGrid(uv), vec3(0.,1.,0.), DrawFunc(uv));
+    vec3 col = mix(DrawGrid(uv), vec3(0.78,0.21,0.63), 
+        DrawSphere(uv,vec2(0.),2.3));
 
     fragColor = vec4(col, 1.0);
 }
