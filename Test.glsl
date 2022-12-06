@@ -18,15 +18,20 @@ vec3 DrawGrid(in vec2 uv){
 }
 
 float DrawSphere(in vec2 uv,in vec2 center, in float radius){
-    return clamp(-sign(length(uv) - radius),0.,1.);
+    float val = sign(length(uv - center) - radius*0.99);
+    float val2 = -sign(length(uv - center) - radius);
+    val = val2 + val - 1.;
+    return clamp(val,0.,1.);
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     vec2 uv = FixUV(fragCoord);
 
+    vec2 mpos = FixUV(iMouse.xy);
+
     vec3 col = mix(DrawGrid(uv), vec3(0.78,0.21,0.63), 
-        DrawSphere(uv,vec2(0.),2.3));
+        DrawSphere(uv,mpos,1.));
 
     fragColor = vec4(col, 1.0);
 }
